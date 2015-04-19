@@ -1,25 +1,118 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Acitivty Monitoring Data Assignment"
+output: html_document
 ---
 
-
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
+```{r setoptios,echo=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+```
 
 
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-## What is the average daily activity pattern?
+The variables included in this dataset are:
 
+* **steps**: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+* **date**: The date on which the measurement was taken in YYYY-MM-DD format
+* **interval**: Identifier for the 5-minute interval in which measurement was taken
 
+### Loading and preprocessing the data
 
-## Imputing missing values
+First we are going to load the necessary data. Since data is downloaded as zip file we 
+are going to unzip and read csv file into variable *activity*.
 
+```{r}
+require(downloader)
+fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+download(fileurl,destfile = "activity.zip",mode="wb")
+unzip(zipfile = "activity.zip")
+activity <- read.csv("activity.csv")
+```
 
+### What is mean total number of steps taken per day?
+
+Now we are going to answer following questions
+
+1. Calculate the total number of steps taken per day
+
+Here we are going to add up all the steps for a day.
+
+```{r}
+steps_per_day <- aggregate(activity$steps, by=list(date=activity$date),function(x) sum(x,na.rm=TRUE))
+steps_per_day
+```
+
+2. Make a histogram of the total number of steps taken each day
+
+```{r histogram,fig.height=4}
+hist(steps_per_day$x,xlab="Steps/day",col = "red",main="Histogram of Steps taken per day")
+```
+
+3. Calculate and report the mean and median of the total number of steps taken per day
+
+Mean for the total number of steps taken per day is
+
+```{r}
+mean_per_day <- aggregate(activity$steps, by=list(date=activity$date),function(x) mean(x,na.rm = T))
+mean_per_day
+```
+
+Median for the total number of steps taken per day is
+
+```{r}
+median_per_day <- aggregate(activity$steps, by=list(date=activity$date),function(x) median(x,na.rm = T))
+median_per_day
+```
+
+### What is the average daily activity pattern?
+
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r}
+require(ggplot2)
+steps_per_interval <- aggregate(activity$steps, by=list(interval=activity$interval),function(x) mean(x,na.rm = T))
+g <- ggplot(steps_per_interval,aes(interval,x))
+p <- g + geom_line() + labs(title = "Average number of steps taken per 5-min interval",x = "5-min interval",y = "Average number of steps")
+print(p)
+```
+
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+835th interval contains maximum number of steps with value of 206.1958
+
+```{r}
+steps_per_interval[which.max(steps_per_interval$x),]
+```
+
+### Imputing missing values
+
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```{r}
+length(which(is.na(activity$steps)))
+```
+
+2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Using mean to fill up NA values
+
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+```{r}
+
+for (i in which(sapply(activity, is.numeric))) {
+    activity[is.na(activity[, i]), i] <- mean(activity[, i],  na.rm = TRUE)
+}
+```
+
+4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r histogram2,fig.height=4}
+steps_per_day2 <- aggregate(activity$steps, by=list(date=activity$date),function(x) sum(x,na.rm=TRUE))
+hist(steps_per_day2$x,xlab="Steps/day",col = "red",main="Histogram 2 of Steps taken per day")
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
