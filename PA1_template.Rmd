@@ -115,4 +115,22 @@ hist(steps_per_day2$x,xlab="Steps/day",col = "red",main="Histogram 2 of Steps ta
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```{r}
+activity$weekvalue <- ifelse(weekdays(as.Date(activity$date)) == "Sunday" | weekdays(as.Date(activity$date)) == "Saturday","weekend", "weekday")
+```
+
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+
+```{r}
+require(ggplot2)
+activity$weekvalue <- ifelse(weekdays(as.Date(activity$date)) == "Sunday" | weekdays(as.Date(activity$date)) == "Saturday","weekend", "weekday")
+steps_per_weekday <- aggregate(activity$steps, by=list(interval=activity$interval,weekvalue=activity$weekvalue),function(x) mean(x,na.rm=TRUE))
+
+g <- ggplot(steps_per_weekday,aes(x,interval))
+p <- g + geom_line(aes(color = weekvalue)) + facet_grid(. ~ weekvalue) + labs(x = "Interval",y = "Number of days") + facet_wrap(~ weekvalue, ncol = 1)
+print(p)
+```
 
